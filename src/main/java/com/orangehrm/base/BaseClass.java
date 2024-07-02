@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeTest;
@@ -65,23 +66,63 @@ public class BaseClass {
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
     }
 
-    @Test
-    public void loginTest() {
+    @Test(priority = 1)
+    public void loginTestWithValidCredentials() {
         driver.findElement(By.xpath("//input[@placeholder='Username']")).sendKeys(prop.getProperty("username"));
         driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys(prop.getProperty("password"));
         driver.findElement(By.xpath("//button[@type='submit']")).submit();
 
         String pageTitle = driver.getTitle();
-        if (pageTitle.equals("OrangeHRM")) {
-            System.out.println("Login Successful");
-        } else {
-            System.out.println("Login failed!");
-        }
+
+        //directly logs into Employeemanagement page
+        Assert.assertEquals("Employee Management",pageTitle);
+        ///logout();
+    }
+
+    @Test(priority=2)
+    public void addEmployee()
+    {
+        driver.findElement(By.xpath("//a[text()='Employee List ']")).click();
+        driver.findElement(By.xpath("//a[@id='addEmployeeButton']")).click();
+
+        driver.findElement(By.xpath("//input[@placeholder='First Name']")).sendKeys(prop.getProperty("FirstName"));
+        driver.findElement(By.xpath("//input[@placeholder='Last Name']")).sendKeys(prop.getProperty("LastName"));
+
+        //driver.findElement(By.xpath("//div[@class='input-group-append']//i[contains(text(),'arrow_drop_down')]")).click();
+        driver.findElement(By.xpath("//input[@value='Canadian Development Center']")).click();
+        driver.findElement(By.xpath("//button[text()='Next']")).click();
+
+
+
+
+
+    }
+
+    @Test(priority = 3)
+    public void loginTestWithInvalidCredentials()
+    {
+        driver.findElement(By.xpath("//input[@placeholder='Username']")).sendKeys(prop.getProperty("username"));
+        driver.findElement(By.xpath("//input[@placeholder='Password']")).sendKeys("12345");
+        driver.findElement(By.xpath("//button[@type='submit']")).submit();
+
+        String expected_message="Invalid Credentials";
+        String actual_message=driver.findElement(By.xpath("//div[@class='toast-message']")).getText();
+
+        //System.out.println(actual_message);
+        Assert.assertEquals(actual_message,expected_message);
     }
 
     @AfterTest
     public void tearDown() throws InterruptedException {
+
+
         Thread.sleep(5000);
         driver.quit();
+    }
+
+    public void logout()
+    {
+        driver.findElement(By.xpath("//a[@id='logout-options-dropdown-button']")).click();
+        driver.findElement(By.xpath("//div[@class='logout-options-menu-item']")).click();
     }
 }
